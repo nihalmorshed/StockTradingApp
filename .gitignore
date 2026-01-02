@@ -40,8 +40,6 @@ yarn-error.*
 /ios
 /android
 
-# Documentation (generated)
-README.md
 
 
 # Testing
