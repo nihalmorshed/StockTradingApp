@@ -33,6 +33,28 @@ jest.mock('socket.io-client', () => {
   };
 });
 
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    back: jest.fn(),
+    replace: jest.fn(),
+  }),
+  useLocalSearchParams: () => ({}),
+  Stack: {
+    Screen: () => null,
+  },
+  Link: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock react-native-chart-kit
+jest.mock('react-native-chart-kit', () => ({
+  LineChart: () => null,
+}));
+
+// Mock @react-native-community/slider
+jest.mock('@react-native-community/slider', () => 'Slider');
+
 // Silence console warnings in tests
 global.console = {
   ...console,
