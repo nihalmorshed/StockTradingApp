@@ -6,7 +6,7 @@ import { PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
-import { StockProvider } from '../src/store';
+import { StockProvider, LoanProvider } from '../src/store';
 import { darkTheme, colors } from '../src/theme';
 
 export default function RootLayout() {
@@ -15,37 +15,47 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <PaperProvider theme={darkTheme}>
           <StockProvider>
-            <StatusBar style="light" backgroundColor={colors.background} />
-            <Stack
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: colors.background,
-                },
-                headerTintColor: colors.textPrimary,
-                headerTitleStyle: {
-                  fontWeight: '600',
-                },
-                contentStyle: {
-                  backgroundColor: colors.background,
-                },
-                animation: 'slide_from_right',
-              }}
-            >
-              <Stack.Screen
-                name="index"
-                options={{
-                  title: 'Stock Feed',
-                  headerShown: true,
+            <LoanProvider>
+              <StatusBar style="light" backgroundColor={colors.background} />
+              <Stack
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: colors.background,
+                  },
+                  headerTintColor: colors.textPrimary,
+                  headerTitleStyle: {
+                    fontWeight: '600',
+                  },
+                  contentStyle: {
+                    backgroundColor: colors.background,
+                  },
+                  animation: 'slide_from_right',
                 }}
-              />
-              <Stack.Screen
-                name="stock/[symbol]"
-                options={{
-                  title: 'Stock Details',
-                  headerShown: true,
-                }}
-              />
-            </Stack>
+              >
+                <Stack.Screen
+                  name="index"
+                  options={{
+                    title: 'Stock Feed',
+                    headerShown: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="stock/[symbol]"
+                  options={{
+                    title: 'Stock Details',
+                    headerShown: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="loan/index"
+                  options={{
+                    title: 'Loan Application',
+                    headerShown: true,
+                    presentation: 'modal',
+                  }}
+                />
+              </Stack>
+            </LoanProvider>
           </StockProvider>
         </PaperProvider>
       </SafeAreaProvider>

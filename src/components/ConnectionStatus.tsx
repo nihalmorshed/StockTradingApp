@@ -1,4 +1,4 @@
-//  Show WebSocket connection status
+//  WebSocket connection status
 
 import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
