@@ -1,4 +1,5 @@
-import '@testing-library/react-native/extend-expect';
+import React from 'react';
+import '@testing-library/jest-native/extend-expect';
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
