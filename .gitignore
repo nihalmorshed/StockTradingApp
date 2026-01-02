@@ -42,3 +42,21 @@ yarn-error.*
 
 # Documentation (generated)
 README.md
+
+
+# Testing
+coverage/
+
+# Misc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
