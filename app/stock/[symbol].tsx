@@ -100,7 +100,6 @@ export default function StockDetailScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: stock.symbol }} />
 
-      {}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
@@ -123,7 +122,6 @@ export default function StockDetailScreen() {
         </View>
       </View>
 
-      {}
       <Surface style={styles.chartContainer} elevation={1}>
         <Text style={styles.chartTitle}>Price History (Last 50 updates)</Text>
         {priceHistory.length >= 2 ? (
@@ -151,7 +149,6 @@ export default function StockDetailScreen() {
         )}
       </Surface>
 
-      {}
       <Surface style={styles.statsContainer} elevation={1}>
         <Text style={styles.statsTitle}>Statistics</Text>
         <View style={styles.statsGrid}>
@@ -168,7 +165,6 @@ export default function StockDetailScreen() {
         </View>
       </Surface>
 
-      {}
       <Surface style={styles.infoContainer} elevation={1}>
         <Text style={styles.infoTitle}>Real-time Data</Text>
         <Text style={styles.infoText}>

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FAB } from 'react-native-paper';
 import { Stock } from '../src/types';
 import { useStocks } from '../src/store';
 import {
@@ -29,6 +30,10 @@ export default function StockFeedScreen() {
     [router]
   );
 
+  const handleLoanPress = useCallback(() => {
+    router.push('/loan');
+  }, [router]);
+
   const ListHeaderComponent = useMemo(
     () => (
       <View style={styles.header}>
@@ -54,6 +59,13 @@ export default function StockFeedScreen() {
         onStockPress={handleStockPress}
         ListHeaderComponent={ListHeaderComponent}
       />
+      <FAB
+        icon="file-document-edit"
+        style={styles.fab}
+        onPress={handleLoanPress}
+        label="Apply for Loan"
+        color={colors.textPrimary}
+      />
     </View>
   );
 }
@@ -71,5 +83,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.xs,
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.lg,
+    backgroundColor: colors.primary,
   },
 });
