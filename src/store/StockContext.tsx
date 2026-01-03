@@ -55,7 +55,13 @@ function stockReducer(state: StockState, action: StockAction): StockState {
 
       action.payload.forEach(stock => {
         stocks.set(stock.symbol, stock);
-        priceWindows.set(stock.symbol, new StockPriceWindow(PRICE_HISTORY_MAX_POINTS));
+
+        // Create price window and populate with existing history if available
+        const window = new StockPriceWindow(PRICE_HISTORY_MAX_POINTS);
+        if (stock.priceHistory && stock.priceHistory.length > 0) {
+          window.pushMany(stock.priceHistory);
+        }
+        priceWindows.set(stock.symbol, window);
       });
 
       return { ...state, stocks, priceWindows, lastUpdate: Date.now() };
@@ -207,7 +213,17 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
 
     stockWebSocketService.connect();
 
+    // If no real data after 5 seconds, start simulation mode (market probably closed)
+    const simulationFallbackTimer = setTimeout(() => {
+      if (!stockWebSocketService.isInSimulationMode()) {
+        console.log('No market data received - starting simulation mode for demo');
+        stockWebSocketService.startSimulation();
+      }
+    }, 5000);
+
     return () => {
+      clearTimeout(simulationFallbackTimer);
+      stockWebSocketService.stopSimulation();
       stockWebSocketService.disconnect();
     };
   }, [handleStockUpdate, handleConnectionChange, handleError]);

@@ -26,6 +26,9 @@ class StockWebSocketService {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 3000;
+  private simulationInterval: NodeJS.Timeout | null = null;
+  private isSimulating: boolean = false;
+  private stockPrices: Map<string, number> = new Map();
 
   private onUpdate: StockUpdateCallback | null = null;
   private onConnectionChange: ConnectionStatusCallback | null = null;
@@ -142,9 +145,90 @@ class StockWebSocketService {
   getConnectionStatus(): boolean {
     return this.isConnected;
   }
+
+  // Start simulation mode for demo purposes (when market is closed)
+  startSimulation(): void {
+    if (this.isSimulating) return;
+
+    console.log('Starting price simulation mode for demo');
+    this.isSimulating = true;
+    this.onConnectionChange?.(true);
+
+    // Initialize prices from POPULAR_STOCKS
+    const basePrices: Record<string, number> = {
+      'AAPL': 178.50, 'GOOGL': 141.25, 'MSFT': 378.90, 'AMZN': 178.35,
+      'META': 505.75, 'TSLA': 248.50, 'NVDA': 875.30, 'JPM': 198.45,
+      'V': 279.80, 'JNJ': 156.20, 'WMT': 165.30, 'PG': 158.90,
+      'DIS': 112.45, 'NFLX': 628.50, 'INTC': 45.30,
+    };
+
+    POPULAR_STOCKS.forEach(stock => {
+      this.stockPrices.set(stock.symbol, basePrices[stock.symbol] || 100);
+    });
+
+    // Generate random price updates every 500-1500ms
+    this.simulationInterval = setInterval(() => {
+      // Pick 1-3 random stocks to update
+      const numUpdates = Math.floor(Math.random() * 3) + 1;
+      const symbols = Array.from(this.stockPrices.keys());
+
+      for (let i = 0; i < numUpdates; i++) {
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        const currentPrice = this.stockPrices.get(symbol) || 100;
+
+        // Random price change: -1% to +1%
+        const changePercent = (Math.random() - 0.5) * 0.02;
+        const newPrice = parseFloat((currentPrice * (1 + changePercent)).toFixed(2));
+
+        this.stockPrices.set(symbol, newPrice);
+
+        const dataPoint: StockDataPoint = {
+          timestamp: Date.now(),
+          price: newPrice,
+          volume: Math.floor(Math.random() * 50000) + 5000,
+        };
+
+        this.onUpdate?.(symbol, dataPoint);
+      }
+    }, 800 + Math.random() * 700); // Random interval 800-1500ms
+  }
+
+  stopSimulation(): void {
+    if (this.simulationInterval) {
+      clearInterval(this.simulationInterval);
+      this.simulationInterval = null;
+    }
+    this.isSimulating = false;
+    console.log('Simulation mode stopped');
+  }
+
+  isInSimulationMode(): boolean {
+    return this.isSimulating;
+  }
 }
 
 export const stockWebSocketService = new StockWebSocketService();
+
+// Generate simulated price history for demo purposes
+function generatePriceHistory(basePrice: number, points: number = 50): StockDataPoint[] {
+  const history: StockDataPoint[] = [];
+  const now = Date.now();
+  let price = basePrice;
+
+  for (let i = points; i > 0; i--) {
+    // Random walk: price changes by -2% to +2%
+    const change = (Math.random() - 0.5) * 0.04 * price;
+    price = Math.max(price + change, 1); // Ensure price stays positive
+
+    history.push({
+      timestamp: now - (i * 5000), // 5 seconds apart
+      price: parseFloat(price.toFixed(2)),
+      volume: Math.floor(Math.random() * 100000) + 10000,
+    });
+  }
+
+  return history;
+}
 
 export function generateInitialStocks(): Stock[] {
   const basePrices: Record<string, number> = {
@@ -184,21 +268,40 @@ export function generateInitialStocks(): Stock[] {
   };
 
   return POPULAR_STOCKS.map(stockInfo => {
-    const price = basePrices[stockInfo.symbol] || 100;
+    const basePrice = basePrices[stockInfo.symbol] || 100;
+    const priceHistory = generatePriceHistory(basePrice, 50);
+
+    // Get current price from the last history point
+    const currentPrice = priceHistory.length > 0
+      ? priceHistory[priceHistory.length - 1].price
+      : basePrice;
+
+    // Calculate change from first to last price in history
+    const firstPrice = priceHistory.length > 0 ? priceHistory[0].price : basePrice;
+    const change = parseFloat((currentPrice - firstPrice).toFixed(2));
+    const changePercent = parseFloat(((change / firstPrice) * 100).toFixed(2));
+
+    // Calculate high/low from price history
+    const prices = priceHistory.map(p => p.price);
+    const high24h = prices.length > 0 ? Math.max(...prices) : basePrice;
+    const low24h = prices.length > 0 ? Math.min(...prices) : basePrice;
+
+    // Calculate total volume from history
+    const totalVolume = priceHistory.reduce((sum, p) => sum + p.volume, 0);
 
     return {
       symbol: stockInfo.symbol,
       name: stockInfo.name,
-      currentPrice: price,
-      previousPrice: price,
-      change: 0,
-      changePercent: 0,
-      volume: 0,
+      currentPrice: currentPrice,
+      previousPrice: firstPrice,
+      change: change,
+      changePercent: changePercent,
+      volume: totalVolume,
       marketCap: marketCaps[stockInfo.symbol] || 100000000000,
-      high24h: price,
-      low24h: price,
+      high24h: high24h,
+      low24h: low24h,
       logoUrl: stockInfo.logoUrl,
-      priceHistory: [],
+      priceHistory: priceHistory,
     };
   });
 }
